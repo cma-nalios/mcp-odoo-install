@@ -1,6 +1,8 @@
 # Installation du serveur MCP Odoo (mcp-server-odoo) pour Claude Desktop
 # Usage : irm https://raw.githubusercontent.com/AMA-Nalios/mcp-odoo-install/main/install-mcp-odoo-windows.ps1 | iex
 # Usage (test de la generation JSON, sans toucher a la vraie config) : .\install-mcp-odoo-windows.ps1 -Test
+# Usage (URL/DB pre-remplies pour un client donne, seuls user + cle API sont demandes) :
+#   $env:ODOO_URL="https://client.odoo.com"; $env:ODOO_DB="client-db"; irm https://raw.githubusercontent.com/AMA-Nalios/mcp-odoo-install/main/install-mcp-odoo-windows.ps1 | iex
 #
 # Notes fiabilite Windows :
 #  - UV_LINK_MODE=copy : evite le verrou de fichier (os error 32) lors de l'install de pywin32
@@ -313,16 +315,32 @@ function Main {
     Write-Host ""
 
     # 2. Identifiants Odoo
-    Write-Host "Pour info :"
-    Write-Host "  - URL Odoo        : l'adresse de votre instance (ex: https://nalios.odoo.com)"
-    Write-Host "  - Base de donnees : visible dans le selecteur de base au login, ou dans l'URL"
-    Write-Host "  - Email / user    : votre identifiant de connexion Odoo"
-    Write-Host "  - Cle API         : Odoo > profil > Compte > Securite du compte > Nouvelle cle API"
-    Write-Host ""
+    # ODOO_URL / ODOO_DB peuvent etre pre-remplies via variables d'environnement
+    # (cf. commande dediee au client en tete de fichier) : dans ce cas on ne redemande
+    # que l'email et la cle API, propres a chaque utilisateur.
     $script:mcpName  = Read-Host "Nom du serveur MCP [odoo]"
     if (-not $mcpName) { $script:mcpName = "odoo" }
-    $script:odooUrl  = Read-Host "URL Odoo (ex: https://nalios.odoo.com)"
-    $script:odooDB   = Read-Host "Nom de la base de donnees"
+
+    if ($env:ODOO_URL) {
+        $script:odooUrl = $env:ODOO_URL
+        Write-Host "URL Odoo (pre-remplie) : $odooUrl"
+    } else {
+        Write-Host "URL Odoo : l'adresse de votre instance (ex: https://nalios.odoo.com)"
+        $script:odooUrl = Read-Host "URL Odoo"
+    }
+
+    if ($env:ODOO_DB) {
+        $script:odooDB = $env:ODOO_DB
+        Write-Host "Base de donnees (pre-remplie) : $odooDB"
+    } else {
+        Write-Host "Base de donnees : visible dans le selecteur de base au login, ou dans l'URL"
+        $script:odooDB = Read-Host "Nom de la base de donnees"
+    }
+
+    Write-Host ""
+    Write-Host "  - Email / user : votre identifiant de connexion Odoo"
+    Write-Host "  - Cle API      : Odoo > profil > Compte > Securite du compte > Nouvelle cle API"
+    Write-Host ""
     $script:odooUser = Read-Host "Email / utilisateur Odoo"
     # Pas de -AsSecureString : la console Windows gere mal le collage en mode masque
     # (bracketed paste), ce qui ne recupere qu'un seul caractere au lieu de la cle complete.
