@@ -3,7 +3,7 @@
     "nalios": {
       "command": "/Users/XXX/.local/bin/uvx",
       "args": [
-        "mcp-server-odoo@0.4.0"
+        "mcp-server-odoo@0.9.0"
       ],
       "env": {
         "ODOO_URL": "https://nalios.odoo.com",

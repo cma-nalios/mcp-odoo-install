@@ -72,7 +72,7 @@ Ajoute le bloc suivant dans la section `mcpServers` (en remplaçant les valeurs)
   "nalios": {
     "command": "C:\\Users\\TonNom\\.local\\bin\\uvx.exe",
     "args": [
-      "mcp-server-odoo@0.4.0"
+      "mcp-server-odoo@0.9.0"
     ],
     "env": {
       "ODOO_URL": "https://ton-instance.odoo.com",

@@ -93,7 +93,7 @@ function Preinstall-McpServerOdoo {
     $env:UV_LINK_MODE = "copy"
     for ($i = 1; $i -le 4; $i++) {
         # --help declenche la resolution + l'install puis rend la main (pas de serveur lance)
-        & $UvxPath --python 3.12 mcp-server-odoo@0.4.0 --help 2>&1 | Out-Null
+        & $UvxPath --python 3.12 mcp-server-odoo@0.9.0 --help 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Host "mcp-server-odoo pre-installe (cache chaud)." -ForegroundColor Green
             return $true
@@ -138,7 +138,7 @@ function Update-Config {
     $entry = [PSCustomObject]@{
         command = $uvxPath
         # --python 3.12 : meme interpreteur que le pre-install -> cache partage, aucune reinstall au lancement.
-        args    = @("--python", "3.12", "mcp-server-odoo@0.4.0")
+        args    = @("--python", "3.12", "mcp-server-odoo@0.9.0")
         env     = [PSCustomObject]@{
             ODOO_URL               = $odooUrl
             ODOO_DB                = $odooDB

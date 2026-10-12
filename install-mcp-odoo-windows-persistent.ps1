@@ -100,7 +100,7 @@ function Install-McpServerOdooTool {
     Write-Host "Installation persistante de mcp-server-odoo (uv tool install, 30-60s)..."
     $env:UV_LINK_MODE = "copy"
     for ($i = 1; $i -le 6; $i++) {
-        & $UvExe tool install "mcp-server-odoo==0.4.0" --python 3.12 --force 2>&1 | Out-Null
+        & $UvExe tool install "mcp-server-odoo==0.9.0" --python 3.12 --force 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) {
             Write-Host "mcp-server-odoo installe." -ForegroundColor Green
             return $true

@@ -71,7 +71,7 @@ config.setdefault("mcpServers", {})
 
 config["mcpServers"][mcp_name] = {
     "command": uvx_path,
-    "args": ["mcp-server-odoo@0.4.0"],
+    "args": ["mcp-server-odoo@0.9.0"],
     "env": {
         "ODOO_URL": url,
         "ODOO_DB": db,
