@@ -23,20 +23,50 @@ param([switch]$Test)
 # Force TLS 1.2 (necessaire sur Windows PowerShell 5.1)
 [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 
+# Un fichier de config "vide" = inexistant, vide ou juste "{}".
+function Test-ConfigHasContent {
+    param([string]$Path)
+    if (-not $Path -or -not (Test-Path $Path)) { return $false }
+    $raw = (Get-Content $Path -Raw -ErrorAction SilentlyContinue) -as [string]
+    if ([string]::IsNullOrWhiteSpace($raw)) { return $false }
+    if ($raw.Trim() -eq '{}') { return $false }
+    return $true
+}
+
+# Deux emplacements possibles :
+#   - installeur classique : %APPDATA%\Claude\claude_desktop_config.json
+#   - Microsoft Store      : %LOCALAPPDATA%\Packages\Claude_*\LocalCache\Roaming\Claude\claude_desktop_config.json
+# La version Store ne lit QUE le second. Un dossier %APPDATA%\Claude qui traine (ancienne
+# install classique) faisait ecrire le script au mauvais endroit. Regle :
+#   1. un seul des deux fichiers a du contenu -> c'est celui-la
+#   2. les deux ont du contenu -> le plus recemment modifie (Claude reecrit le sien a l'usage)
+#   3. aucun n'a de contenu -> Store si le package existe, sinon classique si le dossier existe
 function Find-ClaudeDesktopConfig {
-    # Installeur classique
-    if (Test-Path "$env:APPDATA\Claude") {
-        return "$env:APPDATA\Claude\claude_desktop_config.json"
-    }
-    # Microsoft Store (Claude_pzs8sxrjxfjjc ou variante)
-    $pkg = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Filter "Claude_*" -ErrorAction SilentlyContinue |
-           Select-Object -First 1
+    $classic = "$env:APPDATA\Claude\claude_desktop_config.json"
+
+    $store = $null
+    $pkg = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Filter "Claude_*" -Directory -ErrorAction SilentlyContinue |
+           Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if ($pkg) {
-        $msPath = "$($pkg.FullName)\LocalCache\Roaming\Claude"
-        if (Test-Path $msPath) {
-            return "$msPath\claude_desktop_config.json"
-        }
+        $msDir = "$($pkg.FullName)\LocalCache\Roaming\Claude"
+        if (Test-Path $msDir) { $store = "$msDir\claude_desktop_config.json" }
     }
+
+    $classicFull = Test-ConfigHasContent $classic
+    $storeFull   = Test-ConfigHasContent $store
+
+    if ($classicFull -and -not $storeFull) { return $classic }
+    if ($storeFull -and -not $classicFull) { return $store }
+
+    if ($classicFull -and $storeFull) {
+        $c = (Get-Item $classic).LastWriteTime
+        $m = (Get-Item $store).LastWriteTime
+        Write-Host "Deux configs Claude Desktop trouvees, utilisation de la plus recente." -ForegroundColor Yellow
+        if ($m -ge $c) { return $store } else { return $classic }
+    }
+
+    if ($store) { return $store }
+    if (Test-Path "$env:APPDATA\Claude") { return $classic }
     return $null
 }
 
